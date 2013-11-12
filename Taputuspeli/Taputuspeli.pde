@@ -79,17 +79,21 @@ void draw()
   float a = map(eRadius, 20, 80, 60, 255);
   
   fill(bandcolor);
-  if (fft.getBand(28) > 50 || fft.getBand(29) > 50){      //song.mix.level() > 0.3){ 
+  if (fft.getBand(28) > 50 || fft.getBand(29) > 50 || fft.getBand(30) > 50){      //song.mix.level() > 0.3){ 
     bandcolor = color(0,0,255,a);
     eRadius = 180;
     float directionvelpos = (fft.getBand(28)+fft.getBand(29))/2000;
-    vel.add(new PVector(directionvelpos,-directionvelpos)); 
+    PVector factor = new PVector(0,(pos.y-mouseY));
+    factor.normalize();
+    vel.add(new PVector(directionvelpos,-directionvelpos/2*factor.y)); 
     
   }else if(fft.getBand(5) > 50 || fft.getBand(4) > 50 || fft.getBand(3) > 50 || fft.getBand(6) > 50){
     bandcolor = color(0,255,0,a);
     eRadius = 180; 
     float directionvelneg = -(fft.getBand(5)+fft.getBand(3)+fft.getBand(3)+fft.getBand(6))/400;
-    vel.add(new PVector(directionvelneg,directionvelneg)); 
+    PVector factor = new PVector(0,(pos.y-mouseY));
+    factor.normalize();
+    vel.add(new PVector(directionvelneg,directionvelneg/2*factor.y)); 
     
     
   }
@@ -113,8 +117,8 @@ void draw()
   ellipse(pos.x,pos.y,20,20);
   
   //CONSTRAINTS
-  if(pos.x+20 >= width*3){
-    pos.x = width*3-20;
+  if(pos.x+20 >= width){
+    pos.x = width-20;
     vel.x -= 5;
   }
  if(pos.y+20 >= height){
@@ -137,7 +141,7 @@ void draw()
   int w = int(width/fft.avgSize());
   for (int i = 0; i < fft.avgSize(); i++) //specSize()
   {
-   if(i == 28 || i==29)
+   if(i == 28 || i==29 || i==30)
    fill(0,0,255);
    else if(i==5 || i == 4 || i == 3 || i == 6)
    fill(0,255,0);
@@ -181,7 +185,7 @@ void draw()
   println("SONG MIX LEVEL: " + song.mix.level());*/
   //println("mouseX: " + mouseX);
   //println("mouseY: " + mouseY);
-  
+  //println(fft.getAvg(28));
   
   
  
@@ -205,11 +209,11 @@ void draw()
   
   if(pos.x > mouseX+_x-10 && pos.x < mouseX+_x+10 && pos.y > mouseY+_y-10 && pos.y < mouseY+_y+10){
     rectMode(CENTER);
-    fill(255,0,0);
+    fill(0);
     rect(mouseX+_x,mouseY+_y,20,20);
   }
   
-  
+  line(width/2,height,mouseX,mouseY);
 
  
 }
@@ -217,6 +221,9 @@ void draw()
 void mousePressed()
 {  
   float a = map(eRadius, 20, 80, 60, 255);
+  PVector yfactor = new PVector(0,pos.y-mouseY);
+  yfactor.normalize();
+  
   if
   (mouseButton == LEFT){
     aiming=!aiming;
@@ -224,7 +231,7 @@ void mousePressed()
     bandcolor = color(0,255,0,a);
     eRadius = 180;
     float directionvelneg = -2;
-    vel.add(new PVector(directionvelneg,directionvelneg/1.5)); 
+    vel.add(new PVector(directionvelneg,directionvelneg/1.5*yfactor.y)); 
   }
   else if
   (mouseButton == RIGHT){
@@ -233,7 +240,7 @@ void mousePressed()
   bandcolor = color(0,0,255,a);
     eRadius = 180;
     float directionvelpos = 2;
-    vel.add(new PVector(directionvelpos,-directionvelpos/1.5)); 
+    vel.add(new PVector(directionvelpos,-directionvelpos/1.5*yfactor.y)); 
   }
   else if
   (mouseButton == CENTER){
