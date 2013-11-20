@@ -1,259 +1,272 @@
 /**
-  * This sketch demonstrates how to use the BeatDetect object song SOUND_ENERGY mode.<br />
-  * You must call <code>detect</code> every frame and then you can use <code>isOnset</code>
-  * to track the beat of the music.
-  * <p>
-  * This sketch plays an entire song, so it may be a little slow to load.
-  */
- 
+ * This sketch demonstrates how to use the BeatDetect object song SOUND_ENERGY mode.<br />
+ * You must call <code>detect</code> every frame and then you can use <code>isOnset</code>
+ * to track the beat of the music.
+ * <p>
+ * This sketch plays an entire song, so it may be a little slow to load.
+ */
+
+import peasy.*;
+
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import ddf.minim.effects.*;
- 
+
 Minim minim;
 AudioSource song;
 BeatDetect beat;
 HighPassSP lpf;
 FFT fft;
 
-Background scrollingbackground;
+AudioSample snd[]; //AudioSamples are "triggered" sounds
+int currSnd; //simple counter
 
-ParticleSystem crosshair;
- 
+
+SoundAnalyzer soundanalyzer;
+Background scrollingbackground;
+ParticleSystem particle;
+Crosshair crosshair;
+
+import com.phidgets.*;
+import com.phidgets.event.*;
+import fisica.*;
+import org.jbox2d.common.*;
+
+FWorld world;
+FBox obstacle;
+FBox ground;
+FPoly poly;
+Bird bird;
+BirdContainer birdcontainer;
+Indian indian;
+
+ArrowContainer arrowContainer;
+
+InterfaceKitPhidget ik;
+
+
 float eRadius;
-float x,y;
+float x, y;
 int direction = 1;
-PVector vel, pos;
+PVector arrowVelocity, pos;
 static int FREQ_ENERGY;
 boolean totheRight = true;
 color bandcolor;
 boolean aiming = true;
+boolean showcrosshair = true;
+boolean disablesound = false;
+boolean shoot = false;
+boolean pressed = false;
+boolean manualCrosshair = true;
+boolean moveRight = true;
 
- float _x = 0;   //KADEN TARINAN KOORDINAATIT;
-  float _y = 0;
- 
+float aimShakeX = 0;   //KADEN TARINAN KOORDINAATIT;
+float aimShakeY = 0;
+float angle; 
+float arrowX;
+float arrowY;
+float indianX;
+int elapsed;
+
+ArrayList arrows;
+
+int startTimer;
+float reduceCrosshair = 0;
+
+PImage angrybird,deadangrybird;
+PImage arrowimg;
+PImage mountains;
+
+
+PVector birdvelocity;
+
+PeasyCam cam;
+
 void setup()
 {
-  size(1200, 600, P3D);
+  size(1600, 800, P3D);
+
+
+  //cam = new PeasyCam(this, width/2, height/2 , 0 , 700);
+
+  soundanalyzer = new SoundAnalyzer();
+
+  Fisica.init(this);
+
+  //SOUNDANALYZER-----------------------------------------------------------------!!!!!!!!!!!!!!!!!!!!!!!!
   minim = new Minim(this);
-  song = minim.getLineIn(Minim.STEREO,1024);
+  song = minim.getLineIn(Minim.STEREO, 1024);
   //song.play();
   // a beat detection object song SOUND_ENERGY mode with a sensitivity of 10 milliseconds
-  beat = new BeatDetect(1024,44000);
+  beat = new BeatDetect(1024, 44000);
   beat.setSensitivity(0);
- //beat.detectMode(BeatDetect.FREQ_ENERGY);
-  //ellipseMode(CENTER_RADIUS);
-  eRadius = 20;
-  x=0;
-  y=height-20;
-  rect(x,y,20,20);
-  
-  vel = new PVector(1,0);
-  pos = new PVector(0,0);
-  
+  //beat.detectMode(BeatDetect.FREQ_ENERGY);
   //lpf = new HighPassSP(100,1024);
   //song.addEffect(lpf);
   fft = new FFT(1024, 44000);
-  fft.logAverages(22,5);
-  //rectMode(CORNERS);
-  bandcolor = color(255,0,0);
-  
-  crosshair = new ParticleSystem(new PVector(0,0));
-  
-  scrollingbackground=new Background();
- 
+  fft.logAverages(20, 60);
+  bandcolor = color(255, 0, 0);
 
+  arrowVelocity = new PVector(1, 0);
+  pos = new PVector(0, 0);
+
+  particle = new ParticleSystem(new PVector(0, 0));
+
+  scrollingbackground=new Background();
+
+  crosshair = new Crosshair();
+  reduceCrosshair = 0;
+
+
+  angrybird = loadImage("angrybird.png");
+  deadangrybird = loadImage("deadangrybird.png");
+  arrowimg = loadImage("arrow.png");
+  arrowimg.resize(0, 3);
+
+
+
+  createWorld();
+
+
+  birdvelocity = new PVector(0, 0);
+  birdcontainer = new BirdContainer();
+
+
+  indian = new Indian();
+
+  arrowContainer = new ArrowContainer();
+  //arrows = new ArrayList<FPoly>();
+  constrain(arrowY, 0, height);
+  arrowY = height;
+  arrowX = 0 ;
+
+  mountains = loadImage("westlands.jpg");
+
+  //setupIKP();
+
+  showcrosshair = true;
+  disablesound = true;
+
+
+
+  snd = new AudioSample[6]; //setup sample array
+  for (int i=0; i < 6; i++) snd[i] = minim.loadSample(i+".wav"); //load few samples for variety
+  currSnd = 0; //initialize the counter
+  
+  snd[5].trigger();
+  snd[5].setGain(-20);
 }
- 
+
 void draw()
 {
-  background(0);
+  //println(frameRate);
+
+  background(200, 243, 255);
+  //tint(0, 153, 204, 255);
+
+  float a = map(indianX, 0, width, 0, mountains.width-width);
+
+  image(mountains, 0, 0);
+
+  world.step();
+
+  particle.addParticle();
+  particle.run();
+
+  birdcontainer.update();
+
+  if (showcrosshair)
+    crosshair.update();
+
+  world.draw();
+
   scrollingbackground.display();
-  //DRAWSIDE
-  crosshair.addParticle();
-  crosshair.run();
-  
-  
-  //SOUNDSIDE
-  beat.detect(song.mix);
-  float a = map(eRadius, 20, 80, 60, 255);
-  
-  fill(bandcolor);
-  if (fft.getBand(28) > 50 || fft.getBand(29) > 50 || fft.getBand(30) > 50){      //song.mix.level() > 0.3){ 
-    bandcolor = color(0,0,255,a);
-    eRadius = 180;
-    float directionvelpos = (fft.getBand(28)+fft.getBand(29))/2000;
-    PVector factor = new PVector(0,(pos.y-mouseY));
-    factor.normalize();
-    vel.add(new PVector(directionvelpos,-directionvelpos/2*factor.y)); 
-    
-  }else if(fft.getBand(5) > 50 || fft.getBand(4) > 50 || fft.getBand(3) > 50 || fft.getBand(6) > 50){
-    bandcolor = color(0,255,0,a);
-    eRadius = 180; 
-    float directionvelneg = -(fft.getBand(5)+fft.getBand(3)+fft.getBand(3)+fft.getBand(6))/400;
-    PVector factor = new PVector(0,(pos.y-mouseY));
-    factor.normalize();
-    vel.add(new PVector(directionvelneg,directionvelneg/2*factor.y)); 
-    
-    
-  }
-  
-  stroke(255);
-  line(0,400,width,400);
-  line(0,550,width,550);
-  
-  ellipse(mouseX, mouseY, eRadius, eRadius);
-  eRadius *= 0.99;
-  vel.mult(0.99);
-  if ( eRadius < 20 ) eRadius = 20;
-  
-   
-  pos.add(new PVector(totheRight ? 0.98:-0.98,0.98));
-  pos.add(vel);
-  fill(255,0,0);
-  
-  rectMode(CORNER);
-  
-  ellipse(pos.x,pos.y,20,20);
-  
-  //CONSTRAINTS
-  if(pos.x+20 >= width){
-    pos.x = width-20;
-    vel.x -= 5;
-  }
- if(pos.y+20 >= height){
-    pos.y = height-20;
-    vel.y -= 5;
-  }
-  
-  if(pos.x <= 0){
-    pos.x = 0;
-    vel.x += 5;
-  }
-  if(pos.y <=-50){
-    
-    vel.y += 5;
-  }
-  
-  //FFT
-  rectMode(CORNERS);
-  fft.forward(song.mix);
-  int w = int(width/fft.avgSize());
-  for (int i = 0; i < fft.avgSize(); i++) //specSize()
-  {
-   if(i == 28 || i==29 || i==30)
-   fill(0,0,255);
-   else if(i==5 || i == 4 || i == 3 || i == 6)
-   fill(0,255,0);
-   else
-   fill(255,0,0);
-   // draw the line for frequency band i, 
-   // scaling it by 4 so we can see it a bit better
-   //line(i, height, i, height - fft.getBand(i) * 4);
-   rect(i*w,height,i*w+w,height-fft.getAvg(i));
-  }
 
-  ellipse(width-10,pos.y,10,10);
-  
-  beginShape();
-  
-  if(totheRight){
-  vertex(width/2,height*0.90);
-  vertex(width/2,height*0.90+20);
-  vertex(width/2+20,height*0.90);
-  
-  vertex(width/2,height*0.90);
-  vertex(width/2,height*0.90-20);
-  vertex(width/2+20,height*0.90);
-  }
-  else{
-  vertex(width/2,height*0.90);
-  vertex(width/2,height*0.9+20);
-  vertex(width/2-20,height*0.90);
-  
-  vertex(width/2,height*0.90);
-  vertex(width/2,height*0.9-20);
-  vertex(width/2-20,height*0.90);
-  }
-  endShape();
-  
-  //println(song.mix.level());
-  //if(song.mix.level() > 0.3)
-  //println("JEEEEEEEEEEEEEEEEEEEEEEE");
-  /*println("RIGHT BAND " + fft.getBand(28));
-  println("LEFT BAND " + fft.getBand(5));
-  println("SONG MIX LEVEL: " + song.mix.level());*/
-  //println("mouseX: " + mouseX);
-  //println("mouseY: " + mouseY);
-  //println(fft.getAvg(28));
-  
-  
- 
-  float r = eRadius/2;
-  
-  pushMatrix();
-  
-  float rSquared = r*r;
-  translate(mouseX,mouseY);
-  if(aiming){ 
-  _x=random(-r,r);
-  _y=random(-1,1)*sqrt(rSquared-_x*_x);
-  ellipse(_x,_y,5,5);
-  //setHitpoint(_x,_y);
-  }else{
-   fill(255,224,50,150);
-   ellipse(_x,_y,20,20);
-  }
-  
-  popMatrix();
-  
-  if(pos.x > mouseX+_x-10 && pos.x < mouseX+_x+10 && pos.y > mouseY+_y-10 && pos.y < mouseY+_y+10){
-    rectMode(CENTER);
-    fill(0);
-    rect(mouseX+_x,mouseY+_y,20,20);
-  }
-  
-  line(width/2,height,mouseX,mouseY);
+  arrowContainer.update();
+  indian.update();
 
- 
+  castRay();
+
+  if (!disablesound)
+    soundanalyzer.update();
+
+  aimingType();
 }
 
-void mousePressed()
-{  
-  float a = map(eRadius, 20, 80, 60, 255);
-  PVector yfactor = new PVector(0,pos.y-mouseY);
-  yfactor.normalize();
-  
-  if
-  (mouseButton == LEFT){
-    aiming=!aiming;
-    totheRight = false;
-    bandcolor = color(0,255,0,a);
-    eRadius = 180;
-    float directionvelneg = -2;
-    vel.add(new PVector(directionvelneg,directionvelneg/1.5*yfactor.y)); 
+void shoot(float elapsed_) {
+
+  arrowContainer.addArrow(elapsed_);
+
+  snd[4].stop();
+  snd[currSnd].trigger(); //trigger the sound
+  //currSnd = (currSnd + 1)%4; //increment the counterso different sound is played next
+  //snd[2].trigger();
+}
+
+float getShotAngle() {
+  return atan2(arrowY-height, arrowX-indianX);
+}
+
+void aimingType() {
+  if (manualCrosshair) {
+    if (pressed) {
+      reduceCrosshair+=0.5;
+
+      if (reduceCrosshair > 100)
+        reduceCrosshair = 100;
+
+      //TAHTAYSVIIVAT  
+      /*float interpolate = reduceCrosshair/100;
+       line(indianX, height, (1-interpolate)*indianX + (interpolate)*arrowX, (1-interpolate)*height + (interpolate)*arrowY);
+       
+       line(indianX, height, arrowX+50-reduceCrosshair/2, arrowY);
+       line(indianX, height, arrowX-50+reduceCrosshair/2, arrowY);*/
+      //arrowY -= 3;
+    }
   }
-  else if
-  (mouseButton == RIGHT){
-    aiming=!aiming;
-  totheRight = true;
-  bandcolor = color(0,0,255,a);
-    eRadius = 180;
-    float directionvelpos = 2;
-    vel.add(new PVector(directionvelpos,-directionvelpos/1.5*yfactor.y)); 
-  }
-  else if
-  (mouseButton == CENTER){
-    aiming=!aiming;
+  else {
+    if (pressed) {
+      arrowY -= 3;
+      line(indianX, height, arrowX, arrowY);
+      //arrowY = height;
+      //arrowX = indianX;
+    }
   }
 }
- 
+
+void createWorld() {
+  world = new FWorld();
+  //world.setGravity(0,9.89);
+
+  obstacle = new FBox(150, 150);
+  obstacle.setRotation(PI/4);
+  obstacle.setPosition(width/2, -100);
+  obstacle.setStatic(true);
+  obstacle.setFill(0);
+  obstacle.setRestitution(0);
+  obstacle.setGrabbable(true);
+
+  ground = new FBox(width, 5);
+  ground.setPosition(width/2, height+50);
+  ground.setStatic(true);
+  ground.setFill(0);
+  ground.setRestitution(1);
+  ground.setDensity(2);
+
+  world.add(obstacle);
+  world.add(ground);
+}
+
 void stop()
 {
   // always close Minim audio classes when you are finished with them
   song.close();
   // always stop Minim before exiting
   minim.stop();
- 
+
   super.stop();
 }
+
+
+
+
