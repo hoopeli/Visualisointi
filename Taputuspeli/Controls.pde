@@ -1,5 +1,6 @@
-void mouseMoved(){
-  
+void mouseMoved() {
+  arrowX = mouseX;
+  arrowY = mouseY;
 }
 
 void mousePressed()
@@ -9,24 +10,35 @@ void mousePressed()
   yfactor.normalize();
 
   if
-    (mouseButton == LEFT) {
+  (mouseButton == LEFT) {
+    pressed = true;
+    startTimer = millis();
+    elapsed = 0;
+  }
+  else if
+  (mouseButton == RIGHT) {
     aiming=!aiming;
-    totheRight = false;
+    totheRight = true;
     eRadius = 180;
   }
-else if
-(mouseButton == RIGHT) {
-  aiming=!aiming;
-  totheRight = true;
-  eRadius = 180;
+  else if
+  (mouseButton == CENTER) {
+    aiming=!aiming;
+  }
 }
-else if
-(mouseButton == CENTER) {
-  aiming=!aiming;
-}
+
+void mouseReleased(){
+    elapsed = millis() - startTimer;
+    shoot(elapsed);
+    reduceCrosshair = 0;
+    pressed = false;
 }
 
 void keyPressed() {
+  if (key == 'a')
+    indianX-=5;
+  if (key == 'd')
+    indianX+=5;
   if (key == 'c')
     showcrosshair = !showcrosshair;
   if (key == 'x')
@@ -41,7 +53,7 @@ void keyPressed() {
     birdcontainer.moveBirds(true);
   if (key == 'k')
     birdcontainer.moveBirds(false);
-  if(key == 't')
+  if (key == 't')
     scrollingbackground.setX(4000);
 
   //KEYBOARD CROSSBOX DRAW 

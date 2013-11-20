@@ -65,8 +65,8 @@ class Crosshair {
 
   void update() {
     fill(255, 0, 0, 100);
-    //ellipse(arrowX, arrowY, 100-reduceCrosshair, 100-reduceCrosshair);//(mouseX, mouseY, eRadius, eRadius);
-    ellipse(mouseX, mouseY, 100-reduceCrosshair, 100-reduceCrosshair);
+    ellipse(arrowX, arrowY, 100-reduceCrosshair, 100-reduceCrosshair);//(mouseX, mouseY, eRadius, eRadius);
+    //ellipse(mouseX, mouseY, 100-reduceCrosshair, 100-reduceCrosshair);
     eRadius *= 0.99;
 
     if ( eRadius < 20 ) eRadius = 20;
@@ -75,8 +75,8 @@ class Crosshair {
     pushMatrix();
     float r = (100-reduceCrosshair)/2;//eRadius/2;
     float rSquared = r*r;
-    //translate(arrowX, arrowY);//(mouseX, mouseY);
-    translate(mouseX,mouseY);
+    translate(arrowX, arrowY);//(mouseX, mouseY);
+   
     if (pressed) { 
       aimShakeX=random(-r, r);
       aimShakeY=random(-1, 1)*sqrt(rSquared-aimShakeX*aimShakeX);
