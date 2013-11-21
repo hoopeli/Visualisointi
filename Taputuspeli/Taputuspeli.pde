@@ -76,11 +76,19 @@ float reduceCrosshair = 0;
 PImage angrybird,deadangrybird;
 PImage arrowimg;
 PImage mountains;
+PImage gorillaimg, gorillaimg1;
+PImage bowdrawimg;
 
+float cX, cY;
+float pressedX,pressedY;
 
 PVector birdvelocity;
 
+boolean showJungle;
+
 PeasyCam cam;
+
+int hits;
 
 void setup()
 {
@@ -116,12 +124,15 @@ void setup()
 
   crosshair = new Crosshair();
   reduceCrosshair = 0;
-
+  
 
   angrybird = loadImage("angrybird.png");
   deadangrybird = loadImage("deadangrybird.png");
   arrowimg = loadImage("arrow.png");
-  arrowimg.resize(0, 3);
+  gorillaimg = loadImage("gorilla.png"); //gorilla left
+  gorillaimg1 = loadImage("gorilla1.png"); //gorilla right
+  bowdrawimg = loadImage("bowdraw1.png");
+  arrowimg.resize(0, 6);
 
 
 
@@ -146,6 +157,7 @@ void setup()
 
   showcrosshair = true;
   disablesound = true;
+  showJungle = true;
 
 
 
@@ -166,7 +178,7 @@ void draw()
 
   float a = map(indianX, 0, width, 0, mountains.width-width);
 
-  image(mountains, 0, 0);
+  //image(mountains, 0, 0);
 
   world.step();
 
@@ -179,7 +191,8 @@ void draw()
     crosshair.update();
 
   world.draw();
-
+  
+  if(showJungle)
   scrollingbackground.display();
 
   arrowContainer.update();
@@ -191,6 +204,12 @@ void draw()
     soundanalyzer.update();
 
   aimingType();
+  
+  arrowX = mouseX;
+  arrowY = mouseY;
+  
+  
+ 
 }
 
 void shoot(float elapsed_) {
@@ -247,7 +266,7 @@ void createWorld() {
   obstacle.setGrabbable(true);
 
   ground = new FBox(width, 5);
-  ground.setPosition(width/2, height+50);
+  ground.setPosition(width/2, height);
   ground.setStatic(true);
   ground.setFill(0);
   ground.setRestitution(1);

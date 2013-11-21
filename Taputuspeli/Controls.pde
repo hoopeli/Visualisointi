@@ -1,6 +1,8 @@
 void mouseMoved() {
-  arrowX = mouseX;
-  arrowY = mouseY;
+  
+  //arrowX = mouseX;
+ // arrowY = mouseY;
+  
 }
 
 void mousePressed()
@@ -25,6 +27,7 @@ void mousePressed()
   (mouseButton == CENTER) {
     aiming=!aiming;
   }
+  
 }
 
 void mouseReleased(){
@@ -35,10 +38,12 @@ void mouseReleased(){
 }
 
 void keyPressed() {
+  if(key == 'q')
+    showJungle = !showJungle;
   if (key == 'a')
-    indianX-=5;
+    indianX-=10;
   if (key == 'd')
-    indianX+=5;
+    indianX+=10;
   if (key == 'c')
     showcrosshair = !showcrosshair;
   if (key == 'x')
@@ -54,7 +59,7 @@ void keyPressed() {
   if (key == 'k')
     birdcontainer.moveBirds(false);
   if (key == 't')
-    scrollingbackground.setX(4000);
+    println("BIRD AMOUNT " + birdcontainer.getBirds().size());
 
   //KEYBOARD CROSSBOX DRAW 
   if (key == 'f') {
@@ -67,6 +72,15 @@ void keyPressed() {
     shoot(elapsed);
     reduceCrosshair = 0;
     pressed = false;
+  }
+}
+
+void keyReleased(){
+    if(key == 'q'){    
+    pressedX = arrowX;
+    pressedY = arrowY;
+    arrowX = constrain(mouseX,pressedX-100,pressedX+100);
+    arrowY = constrain(mouseY,pressedY-100,pressedY+100);
   }
 }
 

@@ -8,21 +8,25 @@ void contactStarted(FContact c) {
   }
   else if (c.getBody2() == ground) {
   }
-  else if (c.getBody1() == ground && c.getBody2() instanceof FPoly) {
+  else if (c.getBody1() == ground && c.getBody2() instanceof FPoly || c.getBody1() instanceof FBox && c.getBody2() instanceof FPoly) {
     FBody arrow2 = c.getBody2();
     arrowContainer.removeArrow(arrow2);
+    snd[2].trigger();
+    particle.addParticle(new PVector(c.getX(), c.getY()));
   }
-  else if (c.getBody2() instanceof FCircle && c.getBody1() instanceof FPoly) {
-
+  else if (c.getBody2() instanceof FCircle && c.getBody1() instanceof FPoly ) {
+        
     snd[2].trigger();
     particle.addParticle(new PVector(c.getX(), c.getY()));
     
 
     FBody arrow1 = c.getBody1();
     FBody bird = c.getBody2();
-    bird.adjustVelocity(0, 1000);
+    bird.adjustVelocity(0, 600);
     bird.dettachImage();
     bird.attachImage(deadangrybird);
+    bird.setSensor(true);
+    hits+=1;
 
     //birdContainer.killBird(bird);
     arrowContainer.removeArrow(arrow1);

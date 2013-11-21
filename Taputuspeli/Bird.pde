@@ -6,7 +6,7 @@ class Bird {
 
   Bird(PVector origin) { 
     //position = new PVector(origin.x,origin.y);
-    position = new PVector(random(0, width), height);
+    position = new PVector(random(0, width), height-50);
     velocity = new PVector(random(-400, 400), random(-400, 0));
 
     bird = new FCircle(30);
@@ -28,7 +28,6 @@ class Bird {
     bird.addForce(velocity.x, -400);
     constraints();
     birdDirectionArrow();
-       
   }
 
   FCircle getBird() {
@@ -42,7 +41,8 @@ class Bird {
   void constraints() {
     //CONSTRAINTS
     if (bird.getX() >= width) {
-      velocity.x = -200;
+      //velocity.x = -200;
+      removeBird();
       totheRight = !totheRight;
       //bird.addTorque(!totheRight ? -50:50);
     }
@@ -53,13 +53,20 @@ class Bird {
     }
 
     if (bird.getX() <= 0) {
-      velocity.x = 200;
+      removeBird();
+      //velocity.x = 200;
       totheRight = !totheRight;
       //bird.addTorque(!totheRight ? -50:50);
     }
     if (bird.getY() <=-50) {
-      velocity.y = 0;
+      removeBird();
     }
+    
+    println(bird.getY());
+    if (bird.getY() < 600)
+    bird.setSensor(false);
+    else if(bird.getY() > 600)
+    bird.setSensor(true);
   }
 
   void birdDirectionArrow() {
@@ -67,6 +74,14 @@ class Bird {
     fill(255, 0, 0, 100);
     //KUINKA KORKEALLA  LINTU ON
     ellipse(width-10, pos.y, 10, 10);
+  }
+
+  void removeBird() {     
+    ArrayList<Bird> b = birdcontainer.getBirds();
+    for (int i = 0; i < b.size(); i++)
+      if (b.get(i).getBird() == bird)
+        b.remove(i);
+    world.remove(bird);
   }
 }
 
@@ -107,16 +122,20 @@ class BirdContainer {
         f.addForce(0, -1000);
       else
         //f.addForce(0,500);
-        f.setVelocity(0, 0);
+        f.setVelocity(-5, 0);
     }
+  }
+
+  ArrayList<Bird> getBirds() { 
+    return birds;
   }
 
   void soundMove() {
     for (int i = 0; i < birds.size(); i++) {
       Bird b = birds.get(i);
       FCircle f = b. getBird();
-      //f.adjustVelocity(random(-50,50), -10);
-      f.addForce(500, -2000);
+      f.adjustVelocity(random(-100, 100), random(-100, 100));
+      //f.addForce(random(-500,500), random(-2000,2000));
     }
   }
 

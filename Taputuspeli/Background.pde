@@ -25,8 +25,7 @@ class Background {
 
 
     x_+=1;
-    println(x_);
-
+    
     image(img, -x_, 100);//-x_, 0);
     
     if(x_ > img.width-width){

@@ -23,14 +23,14 @@ class Particle {
     velocity.add(acceleration);
     location.add(velocity);
 
-    lifespan -= 1.0;
+    lifespan -= 10.0;
   }
 
   // Method to display
   void display() {
     stroke(255, lifespan);
     fill(255, lifespan);
-    ellipse(location.x, location.y, 8, 8);
+    ellipse(location.x, location.y, 2, 2);
   }
 
   // Is the particle still useful?
@@ -91,6 +91,13 @@ class ParticleSystem {
         particles.remove(i);
       }
     }
+    
+    ArrayList<Arrow> arrows_ = arrowContainer.getArrows();
+    if(arrows_.size() > 0){
+      for(int i = 0; i < arrows_.size(); i++){
+     Arrow arrow_ = arrows_.get(i);
+     origin = arrow_.getPos();}
+    }else
     origin = new PVector(indianX, height);
   }
 }

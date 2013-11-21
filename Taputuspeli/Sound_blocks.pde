@@ -8,9 +8,12 @@ class SoundAnalyzer {
 
     fft.forward(song.mix);
 
-    if (fft.calcAvg(0, 200) > 20)
-      birdcontainer.soundMove();
-
+    if (fft.calcAvg(800, 1200) > 80 || fft.calcAvg(1200, 1600) > 80 || fft.calcAvg(1600, 2000) > 80)
+      //birdcontainer.soundMove();
+       birdcontainer.addBird();
+       
+    if(fft.calcAvg(0,800) > 50)
+    birdcontainer.soundMove();
     //FFT
     println("AVG ALL " + fft.calcAvg(0, 3200));
     println("A " + fft.calcAvg(0, 200));

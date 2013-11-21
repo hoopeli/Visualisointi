@@ -17,15 +17,15 @@ class Arrow {
 
     arrowVelocity = new PVector(arrowX-indianX+aimShakeX, arrowY-height+aimShakeY);//(aimShakeX-indianX, aimShakeY-height);
     arrowBody = new FPoly();
-    arrowBody.vertex(-14f, 0);
-    arrowBody.vertex(0, -3f);
-    arrowBody.vertex(6f, 0);
-    arrowBody.vertex(0, 3f);
+    arrowBody.vertex(-28f,0);//(-14f, 0);
+    arrowBody.vertex(0, -6f);//(0, -3f);
+    arrowBody.vertex(12f, 0f);//(6f, 0);
+    arrowBody.vertex(0,  6f);//(0, 3f);
     arrowBody.setPosition(indianX, height);
     arrowBody.setVelocity(arrowVelocity.x*velfactor, arrowVelocity.y*velfactor);
     arrowBody.setRestitution(0.5);
     arrowBody.setFriction(0.5);
-    arrowBody.setDensity(10);
+    arrowBody.setDensity(1);
     arrowBody.setRotation(angle);
     arrowBody.setBullet(true);
     arrowBody.attachImage(arrowimg);
@@ -57,6 +57,9 @@ class Arrow {
   FPoly getArrowBody() { 
     return arrowBody;
   }
+  
+  PVector getPos(){ return new PVector(arrowBody.getX(),arrowBody.getY());}
+  
 }
 
 //ARROWCONTAINER CLASS - CONTAINS ALL ARROWS
@@ -79,6 +82,8 @@ class ArrowContainer {
   void addArrow(float elapsed_) {
     arrows.add(new Arrow(elapsed_));
   }
+  
+  ArrayList<Arrow> getArrows(){ return arrows; }
 
   void removeArrow(FBody arrowBody_) {
 
